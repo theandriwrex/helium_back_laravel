@@ -21,15 +21,23 @@ class RegisteredUserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'names' => 'required|string|max:255',
+            'last_names' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'nullable|string|max:20',
+            'password' => 'required|min:8|confirmed',
+            'role_id' => 'required|exists:roles,id',
         ]);
 
+
         $user = User::create([
-            'name' => $request->name,
+            'names' => $request->names,
+            'last_names' => $request->last_names,
             'email' => $request->email,
+            'phone' => $request->phone,
             'password' => Hash::make($request->password),
+            'role_id' => $request->role_id,
+
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
