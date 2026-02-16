@@ -10,6 +10,4 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/register-test', function () {
-    return response()->json(['ok' => 'register funcionando']);
-});
+
