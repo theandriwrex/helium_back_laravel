@@ -8,9 +8,11 @@ class Company extends Model
 {
     protected $fillable = [
         'user_id',
-        'name',
-        'description'
+        'nit',
+        'address',
+        'website'
     ];
+
 
     public function user()
     {

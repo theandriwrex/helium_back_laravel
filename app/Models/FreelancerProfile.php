@@ -8,13 +8,22 @@ class FreelancerProfile extends Model
 {
     protected $fillable = [
         'user_id',
-        'category_id',
         'description',
-        'hourly_rate'
+        'experience',
+        'profession',
+        'education_level',
+        'strikes'
     ];
 
     public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+{
+    return $this->belongsTo(User::class);
+}
+
+public function services()
+{
+    return $this->hasMany(Service::class, 'freelancer_id');
+}
+
+
 }

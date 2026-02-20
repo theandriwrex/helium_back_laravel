@@ -39,6 +39,17 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
+    public function freelancerProfile()
+    {
+        return $this->hasOne(FreelancerProfile::class);
+    }
+
+    public function company()
+    {
+        return $this->hasOne(Company::class);
+    }
+
 }
 
 
