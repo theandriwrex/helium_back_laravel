@@ -15,4 +15,10 @@ class Skill extends Model
             'freelancer_profile_id'
         );
     }
+
+    public function category()
+    
+    {
+        return $this->belongsTo(Category::class);
+    }
 }

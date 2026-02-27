@@ -35,4 +35,14 @@ class AuthenticatedSessionController extends Controller
             'token' => $token,
         ]);
     }
-}
+
+    /**
+     * Destroy an authenticated session.
+     */
+    public function destroy(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete(); 
+        return response()->json([
+            'message' => 'Sesión cerrada exitosamente'
+        ]);}
+    }
