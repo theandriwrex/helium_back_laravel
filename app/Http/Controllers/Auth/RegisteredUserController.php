@@ -28,6 +28,7 @@ class RegisteredUserController extends Controller
             'phone' => 'nullable|string|max:20',
             'password' => 'required|min:8|confirmed',
             'role_id' => 'required|exists:roles,id',
+            'photo' => 'nullable|image|mimes:jpeg,png,webp|max:2048',
         ];
 
         // Freelancer
@@ -49,8 +50,12 @@ class RegisteredUserController extends Controller
 
         $validated = $request->validate($rules);
 
-        return DB::transaction(function () use ($validated) {
+        return DB::transaction(function () use ($validated, $request) {
             
+            $photoRute=null;
+            if($request->hasFile('photo')){
+                $photoRute=$request->file('photo')->store('photos_profile', 'public');
+            }       
             $user = User::create([
                 'names' => $validated['names'],
                 'last_names' => $validated['last_names'],
@@ -58,6 +63,7 @@ class RegisteredUserController extends Controller
                 'phone' => $validated['phone'] ?? null,
                 'password' => Hash::make($validated['password']),
                 'role_id' => $validated['role_id'],
+                'photo' => $photoRute,
             ]);
 
             if ($user->role_id == 2) {
