@@ -17,6 +17,11 @@ class Service extends Model
         'is_active'
     ];
 
+    protected $casts = [
+        'price' => 'decimal:2',
+        'is_active' => 'boolean',
+    ];
+
     public function freelancerProfile()
     {
         return $this->belongsTo(FreelancerProfile::class, 'freelancer_id');
