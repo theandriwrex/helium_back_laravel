@@ -13,7 +13,7 @@ class ServiceController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Service::with(['category', 'freelancer.user'])
+        $query = Service::with(['category', 'freelancerProfile.user'])
             ->where('is_active', true);
 
         // Filtro por categoría
@@ -31,7 +31,35 @@ class ServiceController extends Controller
             $query->where('price', '<=', $request->max_price);
         }
 
-        return response()->json($query->paginate(10));
+        $services = $query->paginate(10);
+
+        return response()->json([
+            'current_page' => $services->currentPage(),
+            'services' => $services->map(function ($service) {
+                return [
+                    'id' => $service->id,
+                    'title' => $service->title,
+                    'description' => $service->description,
+                    'price' => $service->price,
+                    'category' => $service->category->name,
+
+                    'freelancer' => [
+                        'id' => $service->freelancerProfile->user->id,
+                        'name' => $service->freelancerProfile->user->names . ' ' .
+                                $service->freelancerProfile->user->last_names,
+                        'photo' => $service->freelancerProfile->user->photo,
+                        'profession' => $service->freelancerProfile->profession
+                    ]
+                ];
+            }),
+
+            'pagination' => [
+                'total' => $services->total(),
+                'per_page' => $services->perPage(),
+                'current_page' => $services->currentPage(),
+                'last_page' => $services->lastPage(),
+            ]
+]);
     }
 
     /**

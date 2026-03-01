@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ServiceController;
 require __DIR__.'/auth.php';
 
-
+Route::middleware('auth:sanctum')->patch('/profile', [ProfileController::class, 'update']);
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
