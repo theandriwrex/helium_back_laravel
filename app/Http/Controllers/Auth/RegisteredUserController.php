@@ -35,7 +35,7 @@ class RegisteredUserController extends Controller
         if ($request->role_id == 2) {
             $rules['description'] = 'nullable|string';
             $rules['experience'] = 'nullable|string|max:255';
-            $rules['profession'] = 'nullable|string|max:255';
+            $rules['profession'] = 'required|string|max:255';
             $rules['education_level'] = 'nullable|string|max:255';
             $rules['strikes'] = 'nullable|integer|min:0';
         }

@@ -19,7 +19,7 @@ return new class extends Migration
                 ->constrained('users')
                 ->cascadeOnDelete();
 
-            $table->string('nit');
+            $table->string('nit')->unique();
             $table->text('address');
             $table->string('website')->nullable();
 

@@ -27,5 +27,15 @@ public function services()
     return $this->hasMany(Service::class, 'freelancer_id');
 }
 
+public function skills()
+{
+    return $this->belongsToMany(
+        Skill::class,
+        'freelancer_skills',
+        'freelancer_profile_id',
+        'skill_id'
+    );
+}
+
 
 }

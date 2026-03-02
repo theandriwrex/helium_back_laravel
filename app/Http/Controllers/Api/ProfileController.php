@@ -3,11 +3,23 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\FreelancerProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
+    public function me(Request $request)
+    {
+        $user = $request->user()->load([
+            'role',
+            'freelancerProfile.skills.category',
+            'company',
+        ]);
+
+        return response()->json($user);
+    }
+
     public function update(Request $request)
     {
         $user = $request->user();
@@ -19,7 +31,6 @@ class ProfileController extends Controller
             'photo' => 'nullable|image|mimes:jpeg,png,webp|max:2048',
         ];
 
-        // freelancer
         if ($user->role_id == 2) {
             $rules['description'] = 'nullable|string';
             $rules['experience'] = 'nullable|string';
@@ -27,9 +38,8 @@ class ProfileController extends Controller
             $rules['education_level'] = 'nullable|string|max:255';
         }
 
-        // empresa
         if ($user->role_id == 3) {
-            $rules['nit'] = 'sometimes|string|max:50';
+            $rules['nit'] = 'sometimes|string|max:50|unique:companies,nit,' . optional($user->company)->id;
             $rules['address'] = 'sometimes|string|max:255';
             $rules['website'] = 'nullable|url|max:255';
         }
@@ -37,14 +47,11 @@ class ProfileController extends Controller
         $validated = $request->validate($rules);
 
         return DB::transaction(function () use ($validated, $request, $user) {
-
-            // subir foto
             if ($request->hasFile('photo')) {
                 $validated['photo'] = $request->file('photo')
                     ->store('photos_profile', 'public');
             }
 
-            // actualizar tabla users
             $user->update([
                 'names' => $validated['names'] ?? $user->names,
                 'last_names' => $validated['last_names'] ?? $user->last_names,
@@ -52,10 +59,11 @@ class ProfileController extends Controller
                 'photo' => $validated['photo'] ?? $user->photo,
             ]);
 
-            // freelancer
             if ($user->role_id == 2) {
-
-                $profile = $user->freelancerProfile;
+                $profile = $user->freelancerProfile()->firstOrCreate(
+                    ['user_id' => $user->id],
+                    ['profession' => 'Sin definir']
+                );
 
                 $profile->update([
                     'description' => $validated['description'] ?? $profile->description,
@@ -65,10 +73,22 @@ class ProfileController extends Controller
                 ]);
             }
 
-            // empresa
             if ($user->role_id == 3) {
-
                 $company = $user->company;
+
+                if (!$company && (!isset($validated['nit']) || !isset($validated['address']))) {
+                    return response()->json([
+                        'error' => 'Para crear perfil de empresa se requieren nit y address',
+                    ], 422);
+                }
+
+                if (!$company) {
+                    $company = $user->company()->create([
+                        'nit' => $validated['nit'],
+                        'address' => $validated['address'],
+                        'website' => $validated['website'] ?? null,
+                    ]);
+                }
 
                 $company->update([
                     'nit' => $validated['nit'] ?? $company->nit,
@@ -80,10 +100,55 @@ class ProfileController extends Controller
             return response()->json([
                 'message' => 'Perfil actualizado correctamente',
                 'user' => $user->load([
-                    'freelancerProfile',
-                    'company'
-                ])
+                    'role',
+                    'freelancerProfile.skills.category',
+                    'company',
+                ]),
             ]);
         });
+    }
+
+    public function updateSkills(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->role_id != 2) {
+            return response()->json([
+                'error' => 'Solo freelancers pueden actualizar skills',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'skill_ids' => 'required|array|min:1',
+            'skill_ids.*' => 'integer|exists:skills,id',
+        ]);
+
+        $profile = $user->freelancerProfile()->firstOrCreate(
+            ['user_id' => $user->id],
+            ['profession' => 'Sin definir']
+        );
+
+        $profile->skills()->sync($validated['skill_ids']);
+
+        return response()->json([
+            'message' => 'Skills actualizadas correctamente',
+            'freelancer_profile' => $profile->load('skills.category'),
+        ]);
+    }
+
+    public function showFreelancer(FreelancerProfile $freelancerProfile)
+    {
+        $freelancerProfile->load([
+            'user:id,names,last_names,photo',
+            'skills:id,name,category_id',
+            'skills.category:id,name',
+            'services' => function ($query) {
+                $query->where('is_active', true)
+                    ->select('id', 'freelancer_id', 'category_id', 'title', 'description', 'price', 'is_active', 'created_at');
+            },
+            'services.category:id,name',
+        ]);
+
+        return response()->json($freelancerProfile);
     }
 }

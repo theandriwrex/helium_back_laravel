@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('freelancer_skills', function (Blueprint $table) {
 
-            $table->foreignId('freelancer_id')
+            $table->foreignId('freelancer_profile_id')
                 ->constrained('freelancer_profiles')
                 ->cascadeOnDelete();
 
@@ -21,7 +21,7 @@ return new class extends Migration
                 ->constrained('skills')
                 ->cascadeOnDelete();
 
-            $table->unique(['freelancer_id', 'skill_id']);
+            $table->unique(['freelancer_profile_id', 'skill_id']);
         });
 
     }

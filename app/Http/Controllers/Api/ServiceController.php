@@ -70,6 +70,8 @@ class ServiceController extends Controller
 
                     'freelancer' => [
                         'id' => $service->freelancerProfile->user->id,
+                        'user_id' => $service->freelancerProfile->user->id,
+                        'profile_id' => $service->freelancerProfile->id,
                         'name' => $service->freelancerProfile->user->names . ' ' .
                                 $service->freelancerProfile->user->last_names,
                         'photo' => $service->freelancerProfile->user->photo,
@@ -96,7 +98,7 @@ class ServiceController extends Controller
             return response()->json(['error' => 'Servicio no disponible'], 404);
         }
 
-        $service->load(['category', 'freelancer.user']);
+        $service->load(['category', 'freelancerProfile.user']);
 
         return response()->json($service);
     }
