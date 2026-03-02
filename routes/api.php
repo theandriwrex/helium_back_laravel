@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ServiceController;
+use App\Http\Controllers\Api\ProfileController;
 require __DIR__.'/auth.php';
 
 Route::middleware('auth:sanctum')->patch('/profile', [ProfileController::class, 'update']);

@@ -16,6 +16,29 @@ class ServiceController extends Controller
         $query = Service::with(['category', 'freelancerProfile.user'])
             ->where('is_active', true);
 
+        if ($request->has('search')) {
+
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+
+                $q->where('title', 'ILIKE', "%{$search}%")
+                ->orWhere('description', 'ILIKE', "%{$search}%")
+
+                ->orWhereHas('category', function ($q2) use ($search) {
+                    $q2->where('name', 'ILIKE', "%{$search}%");
+                })
+
+                ->orWhereHas('freelancerProfile', function ($q3) use ($search) {
+                    $q3->where('profession', 'ILIKE', "%{$search}%")
+                        ->orWhereHas('user', function ($q4) use ($search) {
+                            $q4->where('names', 'ILIKE', "%{$search}%")
+                                ->orWhere('last_names', 'ILIKE', "%{$search}%");
+                        });
+                });
+
+        });
+}
         // Filtro por categoría
         if ($request->has('category_id')) {
             $query->where('category_id', $request->category_id);
@@ -30,6 +53,8 @@ class ServiceController extends Controller
         if ($request->has('max_price')) {
             $query->where('price', '<=', $request->max_price);
         }
+
+        
 
         $services = $query->paginate(10);
 
