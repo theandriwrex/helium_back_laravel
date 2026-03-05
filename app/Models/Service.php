@@ -15,11 +15,16 @@ class Service extends Model
         'title',
         'description',
         'price',
+        'delivery_time',
+        'revisions',
+        'requirements',
         'is_active'
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
+        'delivery_time' => 'integer',
+        'revisions' => 'integer',
         'is_active' => 'boolean',
     ];
 
@@ -37,5 +42,14 @@ class Service extends Model
     {
         return $this->hasMany(Order::class);
     }
-}
 
+    public function reviews()
+    {
+        return $this->hasManyThrough(
+            Review::class,
+            Order::class,
+            'service_id',
+            'order_id'
+        );
+    }
+}

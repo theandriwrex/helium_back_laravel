@@ -2,8 +2,10 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\ProfileController;
 require __DIR__.'/auth.php';
@@ -17,6 +19,7 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 
 Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/services/{service}', [ServiceController::class, 'show']);
+Route::get('/services/{service}/reviews', [ReviewController::class, 'indexByService']);
 Route::get('/freelancers/{freelancerProfile}', [ProfileController::class, 'showFreelancer']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -35,8 +38,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']);
+    Route::post('/orders/{order}/review', [ReviewController::class, 'store']);
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::patch('/notifications/{notificationId}/read', [NotificationController::class, 'markAsRead']);
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+
+    Route::prefix('admin')->group(function () {
+        Route::get('/users', [AdminController::class, 'users']);
+        Route::get('/users/{user}', [AdminController::class, 'showUser']);
+        Route::patch('/users/{user}/status', [AdminController::class, 'updateUserStatus']);
+
+        Route::get('/services', [AdminController::class, 'services']);
+        Route::patch('/services/{service}/status', [AdminController::class, 'updateServiceStatus']);
+
+        Route::get('/stats', [AdminController::class, 'stats']);
+    });
 });

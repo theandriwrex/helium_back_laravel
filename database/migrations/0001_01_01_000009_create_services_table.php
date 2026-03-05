@@ -25,6 +25,9 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->decimal('price', 10, 2)->unsigned();
+            $table->unsignedInteger('delivery_time');
+            $table->unsignedInteger('revisions')->default(0);
+            $table->text('requirements')->nullable();
             $table->boolean('is_active')->default(true);
 
             $table->timestamps();

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Service;
+use App\Models\Skill;
 use Illuminate\Http\Request;
 
 class ServiceController extends Controller
@@ -14,6 +15,8 @@ class ServiceController extends Controller
     public function index(Request $request)
     {
         $query = Service::with(['category', 'freelancerProfile.user'])
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
             ->where('is_active', true);
 
         if ($request->has('search')) {
@@ -44,6 +47,20 @@ class ServiceController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
+        // Filtro por skill del freelancer
+        if ($request->has('skill_id')) {
+            $skill = Skill::query()->select('id', 'category_id')->find($request->skill_id);
+
+            if (!$skill) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->where('category_id', $skill->category_id)
+                    ->whereHas('freelancerProfile.skills', function ($q) use ($skill) {
+                        $q->where('skills.id', $skill->id);
+                    });
+            }
+        }
+
         // Filtro por precio mínimo
         if ($request->has('min_price')) {
             $query->where('price', '>=', $request->min_price);
@@ -66,7 +83,12 @@ class ServiceController extends Controller
                     'title' => $service->title,
                     'description' => $service->description,
                     'price' => $service->price,
+                    'delivery_time' => $service->delivery_time,
+                    'revisions' => $service->revisions,
+                    'requirements' => $service->requirements,
                     'category' => $service->category->name,
+                    'avg_rating' => round((float) ($service->reviews_avg_rating ?? 0), 2),
+                    'reviews_count' => (int) ($service->reviews_count ?? 0),
 
                     'freelancer' => [
                         'id' => $service->freelancerProfile->user->id,
@@ -119,6 +141,9 @@ class ServiceController extends Controller
             'description' => 'required|string',
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
+            'delivery_time' => 'required|integer|min:1|max:365',
+            'revisions' => 'required|integer|min:0|max:20',
+            'requirements' => 'nullable|string|max:3000',
         ]);
 
         $freelancer = $user->freelancerProfile;
@@ -129,6 +154,9 @@ class ServiceController extends Controller
             'title' => $validated['title'],
             'description' => $validated['description'],
             'price' => $validated['price'],
+            'delivery_time' => $validated['delivery_time'],
+            'revisions' => $validated['revisions'],
+            'requirements' => $validated['requirements'] ?? null,
             'is_active' => true,
         ]);
 
@@ -151,6 +179,9 @@ class ServiceController extends Controller
             'description' => 'sometimes|string',
             'category_id' => 'sometimes|exists:categories,id',
             'price' => 'sometimes|numeric|min:0',
+            'delivery_time' => 'sometimes|integer|min:1|max:365',
+            'revisions' => 'sometimes|integer|min:0|max:20',
+            'requirements' => 'nullable|string|max:3000',
             'is_active' => 'sometimes|boolean'
         ]);
 

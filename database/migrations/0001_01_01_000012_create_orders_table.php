@@ -24,6 +24,12 @@ return new class extends Migration
 
             $table->decimal('amount', 10, 2);
             $table->string('pse_reference')->nullable();
+            $table->string('status')->default('pending');
+            $table->text('requirements')->nullable();
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('delivered_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
 
             $table->timestamps();
         });
