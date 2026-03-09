@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             CategorySeeder::class,
             SkillSeeder::class,
+            DemoMarketplaceSeeder::class,
         ]);
     }
 }
