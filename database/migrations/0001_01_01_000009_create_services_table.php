@@ -28,6 +28,7 @@ return new class extends Migration
             $table->unsignedInteger('delivery_time');
             $table->unsignedInteger('revisions')->default(0);
             $table->text('requirements')->nullable();
+            $table->string('photo');
             $table->boolean('is_active')->default(true);
 
             $table->timestamps();

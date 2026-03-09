@@ -13,6 +13,7 @@ require __DIR__.'/auth.php';
 Route::middleware('auth:sanctum')->get('/profile', [ProfileController::class, 'me']);
 Route::middleware('auth:sanctum')->patch('/profile', [ProfileController::class, 'update']);
 Route::middleware('auth:sanctum')->patch('/profile/skills', [ProfileController::class, 'updateSkills']);
+Route::get('/skills', [ProfileController::class, 'showSkills']);
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });

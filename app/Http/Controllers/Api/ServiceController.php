@@ -7,6 +7,7 @@ use App\Models\Service;
 use App\Models\Skill;
 use Illuminate\Http\Request;
 
+
 class ServiceController extends Controller
 {
     /**
@@ -84,6 +85,7 @@ class ServiceController extends Controller
                     'description' => $service->description,
                     'price' => $service->price,
                     'delivery_time' => $service->delivery_time,
+                    'photo' => $service->photo,
                     'revisions' => $service->revisions,
                     'requirements' => $service->requirements,
                     'category' => $service->category->name,
@@ -144,10 +146,11 @@ class ServiceController extends Controller
             'delivery_time' => 'required|integer|min:1|max:365',
             'revisions' => 'required|integer|min:0|max:20',
             'requirements' => 'nullable|string|max:3000',
+            'photo' => 'required|image|mimes:jpeg,png,webp|max:2048',
         ]);
 
         $freelancer = $user->freelancerProfile;
-
+        $service_photo = $request->file('photo')->store('services_photos', 'public');
         $service = Service::create([
             'freelancer_id' => $freelancer->id,
             'category_id' => $validated['category_id'],
@@ -158,6 +161,7 @@ class ServiceController extends Controller
             'revisions' => $validated['revisions'],
             'requirements' => $validated['requirements'] ?? null,
             'is_active' => true,
+            'photo' => $service_photo,
         ]);
 
         return response()->json($service, 201);
@@ -182,9 +186,12 @@ class ServiceController extends Controller
             'delivery_time' => 'sometimes|integer|min:1|max:365',
             'revisions' => 'sometimes|integer|min:0|max:20',
             'requirements' => 'nullable|string|max:3000',
-            'is_active' => 'sometimes|boolean'
+            'is_active' => 'sometimes|boolean',
+            'photo' => 'nullable|image|mimes:jpeg,png,webp|max:2048',
         ]);
-
+        if($request->hasfile('photo')){
+        $validated['photo']= $request->file('photo')->store('change_photo', 'public');
+        }
         $service->update($validated);
 
         return response()->json($service);

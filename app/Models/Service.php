@@ -18,7 +18,8 @@ class Service extends Model
         'delivery_time',
         'revisions',
         'requirements',
-        'is_active'
+        'is_active',
+        'photo'
     ];
 
     protected $casts = [
@@ -26,6 +27,7 @@ class Service extends Model
         'delivery_time' => 'integer',
         'revisions' => 'integer',
         'is_active' => 'boolean',
+        'photo'
     ];
 
     public function freelancerProfile()

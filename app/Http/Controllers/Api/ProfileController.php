@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\FreelancerProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\Skill;
 
 class ProfileController extends Controller
 {
@@ -150,5 +151,11 @@ class ProfileController extends Controller
         ]);
 
         return response()->json($freelancerProfile);
+    }
+    public function showSkills(){
+        $skills = Skill::select('id', 'name')
+        ->orderBy('name', 'asc')
+        ->get();
+        return response()->json($skills);
     }
 }
