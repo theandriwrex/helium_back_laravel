@@ -31,6 +31,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/services', [ServiceController::class, 'store']);
     Route::put('/services/{service}', [ServiceController::class, 'update']);
     Route::delete('/services/{service}', [ServiceController::class, 'destroy']);
+    Route::get('/personaServices', [ServiceController::class, 'myServices']);
+
 
     // esto es para poder crear ordenes, verlas, y actualizar su estado, es decir cuando un cliente contrata un servicio,
     //  se crea una orden, y el freelancer puede actualizar el estado de la orden a medida que avanza en el trabajo, 

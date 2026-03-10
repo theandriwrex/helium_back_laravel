@@ -212,4 +212,29 @@ class ServiceController extends Controller
 
         return response()->json(['message' => 'Servicio desactivado correctamente']);
     }
+    public function myServices()
+    {
+        $user = auth()->user();
+
+
+        if ($user->role_id != 2) {
+            return response()->json(['error' => 'No autorizado'], 403);
+        }
+        $services = Service::with('category')
+            ->where('freelancer_id', $user->freelancerProfile->id)
+            ->get(); 
+
+        return response()->json([
+            'services' => $services->map(function ($service) {
+                return [
+                    'id' => $service->id,
+                    'title' => $service->title,
+                    'price' => $service->price,
+                    'is_active' => $service->is_active,
+                    'photo' => $service->photo,
+                    'category' => $service->category->name,
+                ];
+            })
+        ]);
+    }
 }

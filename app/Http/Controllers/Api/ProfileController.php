@@ -158,4 +158,5 @@ class ProfileController extends Controller
         ->get();
         return response()->json($skills);
     }
+    
 }
