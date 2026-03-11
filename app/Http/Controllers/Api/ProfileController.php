@@ -143,14 +143,28 @@ class ProfileController extends Controller
             'user:id,names,last_names,photo',
             'skills:id,name,category_id',
             'skills.category:id,name',
-            'services' => function ($query) {
-                $query->where('is_active', true)
-                    ->select('id', 'freelancer_id', 'category_id', 'title', 'description', 'price', 'is_active', 'created_at');
-            },
-            'services.category:id,name',
         ]);
 
-        return response()->json($freelancerProfile);
+        $services = $freelancerProfile->services()
+            ->where('is_active', true)
+            ->with('category:id,name')
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
+            ->select('id', 'freelancer_id', 'category_id', 'title', 'description', 'price', 'is_active', 'created_at')
+            ->get();
+
+        $ratedServices = $services->where('reviews_count', '>', 0);
+        $avgServiceRating = $ratedServices->isNotEmpty()
+            ? round((float) $ratedServices->avg(function ($service) {
+                return (float) $service->reviews_avg_rating;
+            }), 2)
+            : 0.0;
+
+        return response()->json([
+            'freelancer_profile' => $freelancerProfile,
+            'services' => $services,
+            'avg_service_rating' => $avgServiceRating,
+        ]);
     }
     public function showSkills(){
         $skills = Skill::select('id', 'name')

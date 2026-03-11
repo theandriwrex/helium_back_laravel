@@ -15,7 +15,9 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = Order::query()->with(['service.category', 'service.freelancerProfile.user']);
+        $query = Order::query()
+            ->with(['service.category', 'service.freelancerProfile.user'])
+            ->withExists('review');
 
         if ($user->role_id == 4) {
             return response()->json($query->latest()->paginate(10));
@@ -43,6 +45,7 @@ class OrderController extends Controller
             'service.category',
             'service.freelancerProfile.user:id,names,last_names,email,photo',
         ]);
+        $order->loadExists('review');
 
         return response()->json($order);
     }
