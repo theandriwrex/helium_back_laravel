@@ -23,6 +23,7 @@ Route::get('/services/top', [ServiceController::class, 'top']);
 Route::get('/services/{service}', [ServiceController::class, 'show']);
 Route::get('/services/{service}/reviews', [ReviewController::class, 'indexByService']);
 Route::get('/freelancers/top', [ProfileController::class, 'topFreelancers']);
+Route::get('/freelancers', [ProfileController::class, 'listFreelancers']);
 Route::get('/freelancers/{freelancerProfile}', [ProfileController::class, 'showFreelancer']);
 
 Route::middleware('auth:sanctum')->group(function () {

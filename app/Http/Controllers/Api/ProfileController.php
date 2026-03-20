@@ -150,7 +150,7 @@ class ProfileController extends Controller
             ->with('category:id,name')
             ->withAvg('reviews', 'rating')
             ->withCount('reviews')
-            ->select('id', 'freelancer_id', 'category_id', 'title', 'description', 'price', 'is_active', 'created_at')
+            ->select('id', 'freelancer_id', 'category_id', 'title', 'description', 'price', 'photo', 'is_active', 'created_at')
             ->get();
 
         $ratedServices = $services->where('reviews_count', '>', 0);
@@ -207,6 +207,36 @@ class ProfileController extends Controller
         })->values()->take($limit);
 
         return response()->json($ranked);
+    }
+
+    public function listFreelancers(Request $request)
+    {
+        $perPage = 10;
+
+        $query = FreelancerProfile::query()
+            ->with('user:id,names,last_names,photo')
+            ->withCount(['services' => function ($q) {
+                $q->where('is_active', true);
+            }])
+            ->orderByDesc('id');
+
+        if ($request->filled('search')) {
+            $search = $request->string('search')->toString();
+            $query->whereHas('user', function ($q) use ($search) {
+                $q->where('names', 'ILIKE', "%{$search}%")
+                    ->orWhere('last_names', 'ILIKE', "%{$search}%");
+            })->orWhere('profession', 'ILIKE', "%{$search}%");
+        }
+
+        if ($request->filled('category_id')) {
+            $categoryId = (int) $request->category_id;
+            $query->whereHas('services', function ($q) use ($categoryId) {
+                $q->where('is_active', true)
+                    ->where('category_id', $categoryId);
+            });
+        }
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function showSkills(){
