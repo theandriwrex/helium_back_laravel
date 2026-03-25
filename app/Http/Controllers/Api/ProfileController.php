@@ -181,9 +181,9 @@ class ProfileController extends Controller
             ->with('user:id,names,last_names,photo')
             ->with(['services' => function ($query) {
                 $query->where('is_active', true)
+                    ->select('id', 'freelancer_id', 'title')
                     ->withAvg('reviews', 'rating')
-                    ->withCount('reviews')
-                    ->select('id', 'freelancer_id', 'title');
+                    ->withCount('reviews');
             }])
             ->get();
 
