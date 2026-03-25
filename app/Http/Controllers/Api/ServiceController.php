@@ -10,6 +10,53 @@ use Illuminate\Http\Request;
 
 class ServiceController extends Controller
 {
+    public function top(Request $request)
+    {
+        $limit = (int) $request->get('limit', 5);
+        if ($limit < 1) {
+            $limit = 1;
+        }
+        if ($limit > 20) {
+            $limit = 20;
+        }
+
+        $services = Service::with(['category', 'freelancerProfile.user'])
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->where('is_active', true)
+            ->orderByDesc('reviews_avg_rating')
+            ->orderByDesc('reviews_count')
+            ->limit($limit)
+            ->get()
+            ->map(function ($service) {
+                return [
+                    'id' => $service->id,
+                    'title' => $service->title,
+                    'description' => $service->description,
+                    'price' => $service->price,
+                    'delivery_time' => $service->delivery_time,
+                    'photo' => $service->photo,
+                    'revisions' => $service->revisions,
+                    'requirements' => $service->requirements,
+                    'category' => $service->category->name,
+                    'avg_rating' => round((float) ($service->reviews_avg_rating ?? 0), 2),
+                    'reviews_count' => (int) ($service->reviews_count ?? 0),
+                    'freelancer' => [
+                        'id' => $service->freelancerProfile->user->id,
+                        'user_id' => $service->freelancerProfile->user->id,
+                        'profile_id' => $service->freelancerProfile->id,
+                        'name' => $service->freelancerProfile->user->names . ' ' .
+                                $service->freelancerProfile->user->last_names,
+                        'photo' => $service->freelancerProfile->user->photo,
+                        'profession' => $service->freelancerProfile->profession
+                    ]
+                ];
+            });
+
+        return response()->json([
+            'services' => $services,
+        ]);
+    }
     /**
      * Listar servicios activos (público)
      */

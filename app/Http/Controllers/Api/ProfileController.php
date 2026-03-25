@@ -143,15 +143,72 @@ class ProfileController extends Controller
             'user:id,names,last_names,photo',
             'skills:id,name,category_id',
             'skills.category:id,name',
-            'services' => function ($query) {
-                $query->where('is_active', true)
-                    ->select('id', 'freelancer_id', 'category_id', 'title', 'description', 'price', 'is_active', 'created_at');
-            },
-            'services.category:id,name',
         ]);
 
-        return response()->json($freelancerProfile);
+        $services = $freelancerProfile->services()
+            ->where('is_active', true)
+            ->with('category:id,name')
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
+            ->select('id', 'freelancer_id', 'category_id', 'title', 'description', 'price', 'is_active', 'created_at')
+            ->get();
+
+        $ratedServices = $services->where('reviews_count', '>', 0);
+        $avgServiceRating = $ratedServices->isNotEmpty()
+            ? round((float) $ratedServices->avg(function ($service) {
+                return (float) $service->reviews_avg_rating;
+            }), 2)
+            : 0.0;
+
+        return response()->json([
+            'freelancer_profile' => $freelancerProfile,
+            'services' => $services,
+            'avg_service_rating' => $avgServiceRating,
+        ]);
     }
+
+    public function topFreelancers(Request $request)
+    {
+        $limit = (int) $request->get('limit', 5);
+        if ($limit < 1) {
+            $limit = 1;
+        }
+        if ($limit > 20) {
+            $limit = 20;
+        }
+
+        $profiles = FreelancerProfile::query()
+            ->with('user:id,names,last_names,photo')
+            ->with(['services' => function ($query) {
+                $query->where('is_active', true)
+                    ->withAvg('reviews', 'rating')
+                    ->withCount('reviews')
+                    ->select('id', 'freelancer_id', 'title');
+            }])
+            ->get();
+
+        $ranked = $profiles->map(function ($profile) {
+            $ratedServices = $profile->services->where('reviews_count', '>', 0);
+            $avgServiceRating = $ratedServices->isNotEmpty()
+                ? round((float) $ratedServices->avg(function ($service) {
+                    return (float) $service->reviews_avg_rating;
+                }), 2)
+                : 0.0;
+
+            return [
+                'freelancer_profile_id' => $profile->id,
+                'user' => $profile->user,
+                'avg_service_rating' => $avgServiceRating,
+                'services_count' => $profile->services->count(),
+                'reviews_count' => (int) $profile->services->sum('reviews_count'),
+            ];
+        })->sortByDesc(function ($item) {
+            return [$item['avg_service_rating'], $item['reviews_count']];
+        })->values()->take($limit);
+
+        return response()->json($ranked);
+    }
+
     public function showSkills(){
         $skills = Skill::select('id', 'name')
         ->orderBy('name', 'asc')
