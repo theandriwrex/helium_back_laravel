@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\MetricsController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ReviewController;
@@ -22,7 +23,9 @@ Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/services/top', [ServiceController::class, 'top']);
 Route::get('/services/{service}', [ServiceController::class, 'show']);
 Route::get('/services/{service}/reviews', [ReviewController::class, 'indexByService']);
+Route::get('/metrics/active-counts', [MetricsController::class, 'activeCounts']);
 Route::get('/freelancers/top', [ProfileController::class, 'topFreelancers']);
+Route::get('/freelancers', [ProfileController::class, 'listFreelancers']);
 Route::get('/freelancers/{freelancerProfile}', [ProfileController::class, 'showFreelancer']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -55,8 +58,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/users/{user}/status', [AdminController::class, 'updateUserStatus']);
 
         Route::get('/services', [AdminController::class, 'services']);
+        Route::get('/services/worst-rated', [AdminController::class, 'worstRatedServices']);
+        Route::get('/freelancers/worst-rated', [AdminController::class, 'worstRatedFreelancers']);
         Route::patch('/services/{service}/status', [AdminController::class, 'updateServiceStatus']);
 
         Route::get('/stats', [AdminController::class, 'stats']);
+        Route::get('/dashboard-summary', [AdminController::class, 'dashboardSummary']);
+        Route::get('/reviews/negative', [AdminController::class, 'negativeReviews']);
     });
 });

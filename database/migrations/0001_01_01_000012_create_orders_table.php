@@ -22,10 +22,14 @@ return new class extends Migration
                 ->constrained('services')
                 ->cascadeOnDelete();
 
+            $table->string('project_name')->nullable();
             $table->decimal('amount', 10, 2);
+            $table->decimal('budget', 10, 2)->nullable();
             $table->string('pse_reference')->nullable();
             $table->string('status')->default('pending');
             $table->text('requirements')->nullable();
+            $table->date('deadline')->nullable();
+            $table->string('attachments')->nullable();
             $table->timestamp('started_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
             $table->timestamp('completed_at')->nullable();

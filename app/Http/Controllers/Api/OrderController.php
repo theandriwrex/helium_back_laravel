@@ -19,6 +19,42 @@ class OrderController extends Controller
             ->with(['user', 'service.category', 'service.freelancerProfile.user'])
             ->withExists('review');
 
+        if ($request->filled('order_id')) {
+            $query->where('id', (int) $request->order_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status')->toString());
+        }
+
+        if ($request->filled('user_id')) {
+            $query->where('user_id', (int) $request->user_id);
+        }
+
+        if ($request->filled('service_id')) {
+            $query->where('service_id', (int) $request->service_id);
+        }
+
+        if ($request->filled('q')) {
+            $search = $request->string('q')->toString();
+
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($subQ) use ($search) {
+                    $subQ->where('names', 'ILIKE', "%{$search}%")
+                        ->orWhere('last_names', 'ILIKE', "%{$search}%")
+                        ->orWhere('email', 'ILIKE', "%{$search}%");
+                })->orWhereHas('service', function ($subQ) use ($search) {
+                    $subQ->where('title', 'ILIKE', "%{$search}%")
+                        ->orWhere('description', 'ILIKE', "%{$search}%")
+                        ->orWhereHas('freelancerProfile.user', function ($freelancerQ) use ($search) {
+                            $freelancerQ->where('names', 'ILIKE', "%{$search}%")
+                                ->orWhere('last_names', 'ILIKE', "%{$search}%")
+                                ->orWhere('email', 'ILIKE', "%{$search}%");
+                        });
+                });
+            });
+        }
+
         if ($user->role_id == 4) {
             return response()->json($query->latest()->paginate(10));
         }
@@ -60,7 +96,12 @@ class OrderController extends Controller
 
         $validated = $request->validate([
             'service_id' => 'required|integer|exists:services,id',
+            'project_name' => 'nullable|string|max:255',
+            'projectName' => 'nullable|string|max:255',
             'requirements' => 'nullable|string',
+            'budget' => 'nullable|numeric|min:0',
+            'deadline' => 'nullable|date',
+            'attachments' => 'nullable|file|max:10240',
             'pse_reference' => 'nullable|string|max:255',
         ]);
 
@@ -70,12 +111,21 @@ class OrderController extends Controller
             return response()->json(['error' => 'El servicio no está disponible'], 422);
         }
 
+        $attachmentPath = null;
+        if ($request->hasFile('attachments')) {
+            $attachmentPath = $request->file('attachments')->store('order_attachments', 'public');
+        }
+
         $order = Order::create([
             'user_id' => $user->id,
             'service_id' => $service->id,
+            'project_name' => $validated['project_name'] ?? $validated['projectName'] ?? null,
             'amount' => $service->price,
+            'budget' => $validated['budget'] ?? null,
             'pse_reference' => $validated['pse_reference'] ?? null,
             'requirements' => $validated['requirements'] ?? null,
+            'deadline' => $validated['deadline'] ?? null,
+            'attachments' => $attachmentPath,
             'status' => Order::STATUS_PENDING,
         ]);
 

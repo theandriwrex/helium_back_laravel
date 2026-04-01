@@ -26,10 +26,14 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'service_id',
+        'project_name',
         'amount',
+        'budget',
         'pse_reference',
         'status',
         'requirements',
+        'deadline',
+        'attachments',
         'started_at',
         'delivered_at',
         'completed_at',
@@ -38,6 +42,8 @@ class Order extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'budget' => 'decimal:2',
+        'deadline' => 'date',
         'started_at' => 'datetime',
         'delivered_at' => 'datetime',
         'completed_at' => 'datetime',
