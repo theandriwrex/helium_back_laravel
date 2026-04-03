@@ -36,3 +36,7 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth:sanctum')
     ->name('logout');
 
+    Route::patch('/password/change', [NewPasswordController::class, 'changePassword'])
+    ->middleware('auth:sanctum')
+    ->name('password.change');
+

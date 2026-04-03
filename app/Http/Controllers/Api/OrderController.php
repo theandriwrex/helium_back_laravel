@@ -16,7 +16,7 @@ class OrderController extends Controller
     {
         $user = $request->user();
         $query = Order::query()
-            ->with(['service.category', 'service.freelancerProfile.user'])
+            ->with(['user', 'service.category', 'service.freelancerProfile.user'])
             ->withExists('review');
 
         if ($request->filled('order_id')) {
