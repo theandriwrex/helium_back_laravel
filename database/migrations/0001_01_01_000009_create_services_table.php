@@ -30,8 +30,11 @@ return new class extends Migration
             $table->text('requirements')->nullable();
             $table->string('photo')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->text('deactivation_reason')->nullable();
 
             $table->timestamps();
+
+            $table->index(['freelancer_id', 'is_active']);
         });
 
     }   

@@ -19,6 +19,7 @@ class Service extends Model
         'revisions',
         'requirements',
         'is_active',
+        'deactivation_reason',
         'photo'
     ];
 
@@ -27,6 +28,7 @@ class Service extends Model
         'delivery_time' => 'integer',
         'revisions' => 'integer',
         'is_active' => 'boolean',
+        'deactivation_reason' => 'string',
         'photo'
     ];
 

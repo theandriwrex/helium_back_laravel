@@ -112,7 +112,14 @@ class AdminController extends Controller
             $query->where('category_id', (int) $request->category_id);
         }
 
-        if ($request->filled('is_active')) {
+        if ($request->filled('status')) {
+            $status = strtolower($request->string('status')->toString());
+            if ($status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($status === 'inactive') {
+                $query->where('is_active', false);
+            }
+        } elseif ($request->filled('is_active')) {
             $query->where('is_active', filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN));
         }
 
@@ -127,9 +134,25 @@ class AdminController extends Controller
 
         $validated = $request->validate([
             'is_active' => 'required|boolean',
+            'deactivation_reason' => 'nullable|string|max:2000',
         ]);
 
-        $service->update(['is_active' => $validated['is_active']]);
+        $payload = [
+            'is_active' => $validated['is_active'],
+            'deactivation_reason' => null,
+        ];
+
+        if ($validated['is_active'] === false) {
+            $reason = trim((string) ($validated['deactivation_reason'] ?? ''));
+            if ($reason === '') {
+                return response()->json([
+                    'error' => 'Debes enviar deactivation_reason al desactivar un servicio',
+                ], 422);
+            }
+            $payload['deactivation_reason'] = $reason;
+        }
+
+        $service->update($payload);
 
         return response()->json([
             'message' => 'Estado de servicio actualizado correctamente',

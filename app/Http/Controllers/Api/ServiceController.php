@@ -234,11 +234,17 @@ class ServiceController extends Controller
             'revisions' => 'sometimes|integer|min:0|max:20',
             'requirements' => 'nullable|string|max:3000',
             'is_active' => 'sometimes|boolean',
+            'deactivation_reason' => 'nullable|string|max:2000',
             'photo' => 'nullable|image|mimes:jpeg,png,webp|max:2048',
         ]);
         if($request->hasfile('photo')){
         $validated['photo']= $request->file('photo')->store('change_photo', 'public');
         }
+
+        if (array_key_exists('is_active', $validated) && $validated['is_active'] === true) {
+            $validated['deactivation_reason'] = null;
+        }
+
         $service->update($validated);
 
         return response()->json($service);
@@ -278,6 +284,7 @@ class ServiceController extends Controller
                     'title' => $service->title,
                     'price' => $service->price,
                     'is_active' => $service->is_active,
+                    'deactivation_reason' => $service->deactivation_reason,
                     'photo' => $service->photo,
                     'category' => $service->category->name,
                 ];

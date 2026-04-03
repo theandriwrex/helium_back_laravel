@@ -23,6 +23,9 @@ return new class extends Migration
             $table->text('comment')->nullable();
 
             $table->timestamps();
+
+            $table->index('rating');
+            $table->index('created_at');
         });
 
     }
