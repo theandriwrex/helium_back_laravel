@@ -105,7 +105,7 @@ class ProfileController extends Controller
                     'freelancerProfile.skills.category',
                     'company',
                 ]),
-            ]);
+            ], 200);
         });
     }
 
@@ -134,7 +134,7 @@ class ProfileController extends Controller
         return response()->json([
             'message' => 'Skills actualizadas correctamente',
             'freelancer_profile' => $profile->load('skills.category'),
-        ]);
+        ], 200);
     }
 
     public function showFreelancer(FreelancerProfile $freelancerProfile)
