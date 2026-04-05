@@ -17,6 +17,7 @@ class OrderController extends Controller
         $user = $request->user();
         $query = Order::query()
             ->with(['user', 'service.category', 'service.freelancerProfile.user'])
+            ->withCount('revisions')
             ->withExists('review');
 
         if ($request->filled('order_id')) {
@@ -81,6 +82,7 @@ class OrderController extends Controller
             'service.category',
             'service.freelancerProfile.user:id,names,last_names,email,photo',
         ]);
+        $order->loadCount('revisions');
         $order->loadExists('review');
 
         return response()->json($order);
@@ -108,7 +110,7 @@ class OrderController extends Controller
         $service = Service::with('freelancerProfile')->findOrFail($validated['service_id']);
 
         if (!$service->is_active) {
-            return response()->json(['error' => 'El servicio no está disponible'], 422);
+            return response()->json(['error' => 'El servicio no esta disponible'], 422);
         }
 
         $attachmentPath = null;
@@ -158,10 +160,28 @@ class OrderController extends Controller
 
         if (!$this->isValidTransition($currentStatus, $newStatus, $isClientOwner, $isFreelancerOwner, $isAdmin)) {
             return response()->json([
-                'error' => 'Transición de estado no permitida',
+                'error' => 'Transicion de estado no permitida',
                 'current_status' => $currentStatus,
                 'requested_status' => $newStatus,
             ], 422);
+        }
+
+        if (
+            !$isAdmin
+            && $isFreelancerOwner
+            && $currentStatus === Order::STATUS_IN_PROGRESS
+            && $newStatus === Order::STATUS_DELIVERED
+        ) {
+            $maxRevisions = $this->maxRevisionsForOrder($order);
+            $usedRevisions = $order->revisions()->count();
+
+            if ($usedRevisions < $maxRevisions) {
+                return response()->json([
+                    'error' => 'No puedes marcar como entregado hasta completar todas las revisiones',
+                    'max_revisions' => $maxRevisions,
+                    'used_revisions' => $usedRevisions,
+                ], 422);
+            }
         }
 
         $order->status = $newStatus;
@@ -220,24 +240,48 @@ class OrderController extends Controller
         bool $isFreelancerOwner,
         bool $isAdmin
     ): bool {
+        if ($currentStatus === $newStatus) {
+            return false;
+        }
+
         if ($isAdmin) {
             return true;
         }
 
-        if ($newStatus === Order::STATUS_CANCELLED) {
-            return ($isClientOwner || $isFreelancerOwner)
-                && !in_array($currentStatus, [Order::STATUS_COMPLETED, Order::STATUS_CANCELLED], true);
-        }
-
         if ($isFreelancerOwner) {
+            if ($currentStatus === Order::STATUS_PENDING && $newStatus === Order::STATUS_CANCELLED) {
+                return true;
+            }
+
             return ($currentStatus === Order::STATUS_PENDING && $newStatus === Order::STATUS_IN_PROGRESS)
                 || ($currentStatus === Order::STATUS_IN_PROGRESS && $newStatus === Order::STATUS_DELIVERED);
         }
 
         if ($isClientOwner) {
+            if (
+                in_array($currentStatus, [Order::STATUS_PENDING, Order::STATUS_IN_PROGRESS], true)
+                && $newStatus === Order::STATUS_CANCELLED
+            ) {
+                return true;
+            }
+
             return $currentStatus === Order::STATUS_DELIVERED && $newStatus === Order::STATUS_COMPLETED;
         }
 
         return false;
+    }
+
+    private function maxRevisionsForOrder(Order $order): int
+    {
+        $max = (int) optional($order->service)->revisions;
+        if ($max < 1) {
+            return 1;
+        }
+
+        if ($max > 3) {
+            return 3;
+        }
+
+        return $max;
     }
 }

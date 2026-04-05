@@ -191,7 +191,7 @@ class ServiceController extends Controller
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
             'delivery_time' => 'required|integer|min:1|max:365',
-            'revisions' => 'required|integer|min:0|max:20',
+            'revisions' => 'required|integer|min:1|max:3',
             'requirements' => 'nullable|string|max:3000',
             'photo' => 'required|image|mimes:jpeg,png,webp|max:2048',
         ]);
@@ -231,7 +231,7 @@ class ServiceController extends Controller
             'category_id' => 'sometimes|exists:categories,id',
             'price' => 'sometimes|numeric|min:0',
             'delivery_time' => 'sometimes|integer|min:1|max:365',
-            'revisions' => 'sometimes|integer|min:0|max:20',
+            'revisions' => 'sometimes|integer|min:1|max:3',
             'requirements' => 'nullable|string|max:3000',
             'is_active' => 'sometimes|boolean',
             'deactivation_reason' => 'nullable|string|max:2000',

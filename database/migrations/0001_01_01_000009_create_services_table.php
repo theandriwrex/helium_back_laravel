@@ -26,7 +26,7 @@ return new class extends Migration
             $table->text('description');
             $table->decimal('price', 10, 2)->unsigned();
             $table->unsignedInteger('delivery_time');
-            $table->unsignedInteger('revisions')->default(0);
+            $table->unsignedInteger('revisions')->default(1);
             $table->text('requirements')->nullable();
             $table->string('photo')->nullable();
             $table->boolean('is_active')->default(true);
