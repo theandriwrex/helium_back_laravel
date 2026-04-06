@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\MetricsController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\OrderFinalDeliveryController;
 use App\Http\Controllers\Api\OrderRevisionController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ServiceController;
@@ -53,6 +54,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/{order}/revisions', [OrderRevisionController::class, 'store']);
     Route::patch('/orders/{order}/revisions/{orderRevision}/feedback', [OrderRevisionController::class, 'addFeedback']);
     Route::get('/orders/{order}/revisions/{orderRevision}/files/{orderRevisionFile}/download', [OrderRevisionController::class, 'downloadFile']);
+    Route::get('/orders/{order}/final-delivery', [OrderFinalDeliveryController::class, 'show']);
+    Route::post('/orders/{order}/final-delivery', [OrderFinalDeliveryController::class, 'store']);
+    Route::get('/orders/{order}/final-delivery/files/{orderFinalDeliveryFile}/download', [OrderFinalDeliveryController::class, 'downloadFile']);
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::patch('/notifications/{notificationId}/read', [NotificationController::class, 'markAsRead']);

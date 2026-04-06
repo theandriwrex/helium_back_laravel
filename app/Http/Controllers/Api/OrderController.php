@@ -18,6 +18,7 @@ class OrderController extends Controller
         $query = Order::query()
             ->with(['user', 'service.category', 'service.freelancerProfile.user'])
             ->withCount('revisions')
+            ->withExists('finalDelivery')
             ->withExists('review');
 
         if ($request->filled('order_id')) {
@@ -83,6 +84,7 @@ class OrderController extends Controller
             'service.freelancerProfile.user:id,names,last_names,email,photo',
         ]);
         $order->loadCount('revisions');
+        $order->loadExists('finalDelivery');
         $order->loadExists('review');
 
         return response()->json($order);
@@ -180,6 +182,12 @@ class OrderController extends Controller
                     'error' => 'No puedes marcar como entregado hasta completar todas las revisiones',
                     'max_revisions' => $maxRevisions,
                     'used_revisions' => $usedRevisions,
+                ], 422);
+            }
+
+            if (!$order->finalDelivery()->exists()) {
+                return response()->json([
+                    'error' => 'No puedes marcar como entregado sin registrar la entrega final',
                 ], 422);
             }
         }

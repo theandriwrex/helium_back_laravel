@@ -69,4 +69,9 @@ class Order extends Model
     {
         return $this->hasMany(OrderRevision::class);
     }
+
+    public function finalDelivery()
+    {
+        return $this->hasOne(OrderFinalDelivery::class);
+    }
 }
