@@ -245,5 +245,15 @@ class ProfileController extends Controller
         ->get();
         return response()->json($skills);
     }
+    public function desactivateMyAccount(Request $request)
+    {
+        $user = $request->user();
+        $user->is_active = false;
+        $user->save();
+        $user->tokens()->delete();
+        return response()->json([
+            'message' => 'Tu cuenta ha sido desactivada correctamente.'
+        ]);
+    }
     
 }

@@ -16,6 +16,7 @@ Route::middleware('auth:sanctum')->get('/profile', [ProfileController::class, 'm
 Route::middleware('auth:sanctum')->patch('/profile', [ProfileController::class, 'update']);
 Route::middleware('auth:sanctum')->patch('/profile/skills', [ProfileController::class, 'updateSkills']);
 Route::get('/skills', [ProfileController::class, 'showSkills']);
+Route::middleware('auth:sanctum')->patch('/profile/desactivate', [ProfileController::class, 'desactivateMyAccount']);
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
